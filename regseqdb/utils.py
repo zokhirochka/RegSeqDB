@@ -51,10 +51,11 @@ def exec_query(cursor, query, inputs):
             raise ValueError(f"ERROR: Invalid SQL Query.\nQuery: {query}\nError: {e}")
 
         # Fetch and Curate Results
+        fetched = cursor.fetchall()
         results_dict = {
-                        "results": cursor.fetchall(),
+                        "results": fetched,
                         "colnames": [metadata[0] for metadata in cursor.description],
-                        "rowcount": len(results)
+                        "rowcount": len(fetched)
                         }
         return results_dict
 

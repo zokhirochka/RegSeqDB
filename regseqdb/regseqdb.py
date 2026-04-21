@@ -122,7 +122,7 @@ class RegSeqDB:
 		# Include RNAP Binding
 		if include_rnap:
 			query = """
-					SELECT sID, num_DNA, num_RNA, affinity FROM Promoters
+					SELECT sID, num_DNA, num_RNA, energy, affinity FROM Promoters
 						JOIN PromoterSequences USING(pID)
 						JOIN BarcodeCounts USING(sID)
 						JOIN Experiments USING (eID)
