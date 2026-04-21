@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Promoter Analysis</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { font-family: Arial; background:#f5f6fa; padding:20px; }
+.card { background:white; padding:20px; margin-bottom:20px; border-radius:10px; }
+.row { display:flex; gap:20px; }
+input, select { padding:6px; margin:5px; }
+button { background:#2563eb; color:white; border:none; padding:8px 15px; cursor:pointer; }
+canvas { background:white; }
+.locus { position:relative; height:80px; border-top:2px solid #aaa; margin-top:20px; }
+.box { position:absolute; padding:5px 10px; color:white; border-radius:5px; }
+.rnap { background:#2563eb; left:40%; }
+.tf { background:#16a34a; }
+.tss { position:absolute; left:20%; top:-10px; width:2px; height:20px; background:red; }
+</style>
+</head>
+
+<body>
+
+<!-- ================= PARAMETERS ================= -->
+<div class="card">
+<h2>Analysis Parameters</h2>
+
+<input id="promoter" placeholder="Promoter ID">
+
+<select id="condition">
+<option>Wild Type</option>
+<option>Heat Shock</option>
+<option>Oxidative Stress</option>
+<option>Nutrient Depletion</option>
+<option>pH Shift</option>
+</select>
+
+<input id="tf" placeholder="TF (optional)">
+
+<label><input type="checkbox" id="logfc"> Compare conditions (LogFC)</label>
+
+<br><br>
+<button onclick="analyze()">Analyze</button>
+</div>
+
+<!-- ================= FILTERS ================= -->
+<div class="card">
+<h3>Filters</h3>
+
+Expression:
+<input id="exp_min" type="number" value="0">
+to
+<input id="exp_max" type="number" value="100">
+
+TF Energy:
+<input id="tf_min" type="number" value="-20">
+to
+<input id="tf_max" type="number" value="0">
+
+RNAP Energy:
+<input id="rnap_min" type="number" value="-15">
+to
+<input id="rnap_max" type="number" value="0">
+
+</div>
+
+<!-- ================= PLOTS ================= -->
+<div class="card row">
+<div>
+<h4>Expression vs TF Energy</h4>
+<canvas id="chart1"></canvas>
+</div>
+
+<div>
+<h4>Expression vs RNAP Energy</h4>
+<canvas id="chart2"></canvas>
+</div>
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="card">
+<h3>Results</h3>
+<table border="1" width="100%">
+<thead>
+<tr>
+<th>pID</th>
+<th>Sequence</th>
+<th>Expression</th>
+<th>TF Energy</th>
+<th>RNAP Energy</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+</div>
+
+<!-- ================= LOCUS ================= -->
+<div class="card">
+<h3>Genomic Locus</h3>
+
+<div class="locus">
+<div class="tss"></div>
+<div class="box rnap">RNAP</div>
+<div class="box tf" style="left:60%">TF1</div>
+<div class="box tf" style="left:75%">TF2</div>
+</div>
+
+<p>
+🔵 RNAP | 🟢 TF | 🔴 TSS
+</p>
+
+</div>
+
+<!-- ================= JSON ================= -->
+<script id="data-json" type="application/json">
+{
+ "data":[
+  {"pID":"P001","sequence":"ATCGATCG","expression":45.2,"tf":-12.5,"rnap":-8.3,"condition":"Wild Type"},
+  {"pID":"P002","sequence":"GCTAGCTA","expression":67.8,"tf":-15.2,"rnap":-10.1,"condition":"Heat Shock"},
+  {"pID":"P003","sequence":"TAGCTAGC","expression":32.1,"tf":-9.8,"rnap":-6.5,"condition":"Wild Type"},
+  {"pID":"P004","sequence":"CGATCGAT","expression":89.5,"tf":-18.3,"rnap":-12.7,"condition":"Oxidative Stress"},
+  {"pID":"P005","sequence":"ATGCGTAC","expression":54.3,"tf":-13.1,"rnap":-9.2,"condition":"Wild Type"},
+  {"pID":"P006","sequence":"GCATGCAT","expression":41.7,"tf":-11.4,"rnap":-7.8,"condition":"Wild Type"},
+  {"pID":"P007","sequence":"TACTACGA","expression":72.9,"tf":-16.5,"rnap":-11.3,"condition":"Heat Shock"},
+  {"pID":"P008","sequence":"CGTAGCTA","expression":28.6,"tf":-8.9,"rnap":-5.9,"condition":"Wild Type"}
+ ]
+}
+</script>
+
+<script>
+let raw = JSON.parse(document.getElementById("data-json").textContent).data;
+let chart1, chart2;
+
+function analyze() {
+
+let exp_min = +document.getElementById("exp_min").value;
+let exp_max = +document.getElementById("exp_max").value;
+let tf_min = +document.getElementById("tf_min").value;
+let tf_max = +document.getElementById("tf_max").value;
+let rnap_min = +document.getElementById("rnap_min").value;
+let rnap_max = +document.getElementById("rnap_max").value;
+
+let promoter = document.getElementById("promoter").value;
+let condition = document.getElementById("condition").value;
+
+let filtered = raw.filter(d =>
+(d.expression >= exp_min && d.expression <= exp_max) &&
+(d.tf >= tf_min && d.tf <= tf_max) &&
+(d.rnap >= rnap_min && d.rnap <= rnap_max) &&
+(promoter === "" || d.pID.includes(promoter)) &&
+(condition === "" || d.condition === condition)
+);
+
+renderTable(filtered);
+renderCharts(filtered);
+}
+
+function renderTable(data){
+let t = document.getElementById("table");
+t.innerHTML = "";
+data.forEach(d=>{
+t.innerHTML += `<tr>
+<td>${d.pID}</td>
+<td>${d.sequence}</td>
+<td>${d.expression}</td>
+<td>${d.tf}</td>
+<td>${d.rnap}</td>
+</tr>`;
+});
+}
+
+function renderCharts(data){
+
+let tfData = data.map(d=>({x:d.tf,y:d.expression}));
+let rnapData = data.map(d=>({x:d.rnap,y:d.expression}));
+
+if(chart1) chart1.destroy();
+if(chart2) chart2.destroy();
+
+chart1 = new Chart(document.getElementById("chart1"), {
+type:'scatter',
+data:{datasets:[{label:'TF',data:tfData}]}
+});
+
+chart2 = new Chart(document.getElementById("chart2"), {
+type:'scatter',
+data:{datasets:[{label:'RNAP',data:rnapData}]}
+});
+}
+
+analyze();
+</script>
+
+</body>
+</html>
