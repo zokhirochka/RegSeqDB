@@ -1,0 +1,571 @@
+<html>
+<head>
+    <title>RegSeqDB — Single Promoter Search</title>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* ── Extra styles for results sections ── */
+        .results-section {
+            max-width: 1100px;
+            margin: 28px auto;
+            padding: 0 32px;
+        }
+
+        .results-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--amber-mid);
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .results-header {
+            font-family: var(--serif);
+            font-size: 26px;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .results-header span { color: var(--amber-mid); }
+
+        /* ── Query pills ── */
+        .query-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin: 1rem 0 1.5rem;
+        }
+        .pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.75rem;
+            color: var(--text2);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-family: var(--mono);
+        }
+        .pill strong { color: var(--amber); font-weight: 600; }
+
+        /* ── Plot grid ── */
+        .plot-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .plot-card-full { grid-column: 1 / -1; }
+
+        .plot-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .plot-card-header {
+            padding: 0.9rem 1.2rem 0.6rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: baseline;
+            gap: 0.8rem;
+            background: var(--bg-warm);
+        }
+        .plot-card-header h3 {
+            font-family: var(--sans);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .plot-card-header .plot-desc {
+            font-size: 0.7rem;
+            color: var(--text3);
+            font-family: var(--mono);
+        }
+        .plot-container { width: 100%; height: 380px; }
+        .plot-card-full .plot-container { height: 420px; }
+
+        .no-data {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: var(--text3);
+            font-size: 0.8rem;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-family: var(--mono);
+        }
+
+        /* ── Section title ── */
+        .section-title {
+            font-family: var(--sans);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text3);
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Genomic locus ── */
+        .locus-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+        .locus-track {
+            position: relative;
+            height: 80px;
+            margin: 1.2rem 0 0.8rem;
+        }
+        .locus-track::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 2px;
+            background: var(--border);
+            border-radius: 2px;
+        }
+        .locus-box {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: var(--mono);
+            z-index: 2;
+            white-space: nowrap;
+        }
+        .locus-rnap {
+            background: rgba(31,41,55,0.12);
+            border: 1px solid var(--navy);
+            color: var(--navy);
+        }
+        .locus-tf {
+            background: rgba(26,107,80,0.12);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        .locus-tss {
+            position: absolute;
+            top: 15%;
+            width: 2px; height: 70%;
+            background: var(--amber);
+            z-index: 2;
+            border-radius: 2px;
+        }
+        .locus-tss::after {
+            content: 'TSS';
+            position: absolute;
+            top: -18px; left: 4px;
+            font-size: 0.62rem;
+            color: var(--amber);
+            font-family: var(--mono);
+            letter-spacing: 0.06em;
+        }
+        .locus-legend {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.72rem;
+            color: var(--text2);
+            margin-top: 0.8rem;
+            font-family: var(--mono);
+        }
+        .locus-legend span { display: flex; align-items: center; gap: 0.4rem; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+        /* ── Show more button ── */
+        .show-more-wrap { text-align: center; padding: 1rem 0 0; }
+        .btn-show-more {
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            color: var(--amber);
+            padding: 0.5rem 1.5rem;
+            font-family: var(--mono);
+            font-size: 0.76rem;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .btn-show-more:hover {
+            border-color: var(--amber);
+            background: var(--amber-light);
+        }
+
+        /* ── Error message ── */
+        .error-msg {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: var(--radius-sm);
+            color: #dc2626;
+            padding: 0.8rem 1.2rem;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .plot-grid { grid-template-columns: 1fr; }
+            .plot-card-full { grid-column: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ── Navbar ── -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a class="logo" href="{{ url_for('home') }}">
+                Reg<span>Seq</span>DB
+            </a>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('about') }}">Information</a></li>
+                <li><a href="{{ url_for('help_page') }}">Help</a></li>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('singlesearch') }}">Single Search</a></li>
+                <li><a href="{{ url_for('comparison') }}">Compare Between Conditions</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ── Page Header ── -->
+    <div class="page-header">
+        <h1>Single Promoter Search</h1>
+        <p>Look up a promoter by name or transcription factor and retrieve
+            the sequence and the predicted expression and binding energy data
+            across experimental conditions.</p>
+    </div>
+
+    <!-- ── Search Form ── -->
+    <section class="search-panel">
+        <form name="singlesearch" action="{{ url_for('search') }}" method="GET">
+
+            {% if error %}
+            <div class="error-msg">⚠ {{ error }}</div>
+            {% endif %}
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="promoter_name">Promoter Name:</label>
+                    <input type="text" name="promoter_name" id="promoter_name"
+                        placeholder="ex: tisBp"
+                        value="{{ promoter_name or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="TF_name">Transcription Factor:</label>
+                    <input type="text" name="TF_name" id="TF_name"
+                        placeholder="ex: LexA"
+                        value="{{ tf_name or '' }}">
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="Condition">Condition:</label>
+                <select name="Condition" id="Condition">
+                     <option value="glucose" {% if condition == 'glucose' %}selected{% endif %}> Glucose </option>
+                     <option value="xylose" {% if condition == 'xylose' %}selected{% endif %}> Xylose </option>
+                     <option value="arabinose" {% if condition == 'arabinose' %}selected{% endif %}> Arabinose </option>
+                     <option value="galactose" {% if condition == 'galactose' %}selected{% endif %}> Galactose </option>
+                     <option value="acetate" {% if condition == 'acetate' %}selected{% endif %}> Acetate </option>
+                     <option value="nitrate" {% if condition == 'nitrate' %}selected{% endif %}> Nitrate </option>
+                     <option value="sodium salicytate" {% if condition == 'sodium salicytate' %}selected{% endif %}> Sodium Salicytate </option>
+                     <option value="sodium salicytate (induction)" {% if condition == 'sodium salicytate (induction)' %}selected{% endif %}> Sodium Salicytate (induction) </option>
+                     <option value="phenazine methosulfate" {% if condition == 'phenazine methosulfate' %}selected{% endif %}> Phenazine Methosulfate </option>
+                     <option value="pH 2 (HCl)" {% if condition == 'pH 2 (HCl)' %}selected{% endif %}> HCl (pH=2) </option>
+                     <option value="ethanol (2.5%)" {% if condition == 'ethanol (2.5%)' %}selected{% endif %}> Ethanol 2.5% </option>
+                     <option value="stationary phase (1d)" {% if condition == 'stationary phase (1d)' %}selected{% endif %}> Stationary Phase (1d) </option>
+                     <option value="stationary phase (3d)" {% if condition == 'stationary phase (3d)' %}selected{% endif %}> Stationary Phase (3d) </option>
+                     <option value="cold shock (1h at 10 C)" {% if condition == 'cold shock (1h at 10 C)' %}selected{% endif %}> Cold Shock (1hr at 10C) </option>
+                     <option value="medium cold shock (1h at 19 C)" {% if condition == 'medium cold shock (1h at 19 C)' %}selected{% endif %}> Medium Cold Shock (1hr at 19C) </option>
+                     <option value="heat shock" {% if condition == 'heat shock' %}selected{% endif %}> Heat Shock </option>
+                     <option value="ampicillin" {% if condition == 'ampicillin' %}selected{% endif %}> Ampicillin </option>
+                     <option value="gentamicin" {% if condition == 'gentamicin' %}selected{% endif %}> Gentamicin </option>
+                     <option value="ampicillin (induction)" {% if condition == 'ampicillin (induction)' %}selected{% endif %}> Ampicillin (induction) </option>
+                     <option value="H2O2 (0.1mM, 30min)" {% if condition == 'H2O2 (0.1mM, 30min)' %}selected{% endif %}> H2O2 (0.1mM) </option>
+                     <option value="H2O2 (2.5mM, 10min)" {% if condition == 'H2O2 (2.5mM, 10min)' %}selected{% endif %}> H2O2 (2.5mM) </option>
+                     <option value="copper sulfate (500ÂµM)" {% if condition == 'copper sulfate (500ÂµM)' %}selected{% endif %}> Copper Sulfate (500 µM) </option>
+                     <option value="copper sulfate (2mM)" {% if condition == 'copper sulfate (2mM)' %}selected{% endif %}> Copper Sulfate (2mM) </option>
+                     <option value="HOCl (4mM)" {% if condition == 'HOCl (4mM)' %}selected{% endif %}> HOCl (4mM) </option>
+                     <option value="LB" {% if condition == 'LB' %}selected{% endif %}> LB </option>
+                     <option value="LB + 0.75M NaCl" {% if condition == 'LB + 0.75M NaCl' %}selected{% endif %}> LB + 0.75M NaCl </option>
+                     <option value="nitrogen starvation" {% if condition == 'nitrogen starvation' %}selected{% endif %}> Nitrogen Starvation </option>
+                     <option value="magnesium starvation" {% if condition == 'magnesium starvation' %}selected{% endif %}> Magnesium Starvation </option>
+                     <option value="sulphur starvation" {% if condition == 'sulphur starvation' %}selected{% endif %}> Sulfur Starvation </option>
+                     <option value="ethanol (induction)" {% if condition == 'ethanol (induction)' %}selected{% endif %}> Ethanol (induction) </option>
+                     <option value="glutamic acid (pH 2.5)" {% if condition == 'glutamic acid (pH 2.5)' %}selected{% endif %}> Glutamic Acid (pH=2.5) </option>
+                     <option value="leucine (10mM)" {% if condition == 'leucine (10mM)' %}selected{% endif %}> Leucine 10 mM </option>
+                     <option value="2,2-Dipyridyl" {% if condition == '2,2-Dipyridyl' %}selected{% endif %}> 2,2-Dipyridyl </option>
+                     <option value="spermidine" {% if condition == 'spermidine' %}selected{% endif %}> Spermidine </option>
+                     <option value="serine hydroxamate" {% if condition == 'serine hydroxamate' %}selected{% endif %}> Serine Hydroxamate </option>
+                     <option value="anaerobic" {% if condition == 'anaerobic' %}selected{% endif %}> Anaerobic </option>
+                     <option value="anaerobic + nitrate" {% if condition == 'anaerobic + nitrate' %}selected{% endif %}> Anaerobic + Nitrate </option>
+                     <option value="low osmolarity" {% if condition == 'low osmolarity' %}selected{% endif %}> Low Osmolarity </option>
+                     <option value="low phosphate" {% if condition == 'low phosphate' %}selected{% endif %}> Low Phosphate </option>
+                </select>
+            </div>
+
+            <div class="submit-container">
+                <input type="submit" value="Search">
+            </div>
+        </form>
+    </section>
+
+    <!-- ══════════════════════════════════════
+         RESULTS — only shown after search
+    ══════════════════════════════════════ -->
+    {% if promoter_name and rowcount is defined %}
+
+    <div class="results-section">
+
+        <!-- Results header -->
+        <div class="results-label">Search Results</div>
+        <div class="results-header">Promoter: <span>{{ promoter_name }}</span></div>
+
+        <!-- Query pills -->
+        <div class="query-meta">
+            <div class="pill">Promoter <strong>{{ promoter_name }}</strong></div>
+            <div class="pill">TF <strong>{{ tf_name }}</strong></div>
+            <div class="pill">Condition <strong>{{ condition }}</strong></div>
+            <div class="pill">Sequences returned <strong>{{ rowcount }}</strong></div>
+        </div>
+
+        <!-- ── Plots ── -->
+        <div class="section-title">Visualizations</div>
+        <div class="plot-grid">
+
+            <div class="plot-card">
+                <div class="plot-card-header">
+                    <h3>TF Affinity vs. Expression</h3>
+                    <span class="plot-desc">RNA/DNA · log scale · OLS fit</span>
+                </div>
+                {% if graph_tf_expr %}
+                    <div id="plot-tf-expr" class="plot-container"></div>
+                {% else %}
+                    <div class="no-data">No data available</div>
+                {% endif %}
+            </div>
+
+            <div class="plot-card">
+                <div class="plot-card-header">
+                    <h3>RNAP Binding Energy vs. Expression</h3>
+                    <span class="plot-desc">RNA/DNA · log scale · OLS fit</span>
+                </div>
+                {% if graph_rnap_expr %}
+                    <div id="plot-rnap-expr" class="plot-container"></div>
+                {% else %}
+                    <div class="no-data">No data available</div>
+                {% endif %}
+            </div>
+
+            <div class="plot-card plot-card-full">
+                <div class="plot-card-header">
+                    <h3>TF Affinity vs. RNAP Binding Energy</h3>
+                    <span class="plot-desc">Regulatory competition · all sequences</span>
+                </div>
+                {% if graph_tf_rnap %}
+                    <div id="plot-tf-rnap" class="plot-container"></div>
+                {% else %}
+                    <div class="no-data">No data available</div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- ── Genomic Locus ── -->
+        <div class="section-title">Genomic Locus</div>
+        <div class="locus-card">
+            <p style="font-size:0.75rem; color:var(--text2); margin-bottom:0.3rem;">
+                Approximate positions of binding sites relative to the transcription start site (TSS).
+            </p>
+            <div class="locus-track">
+                <div class="locus-tss" style="left: 20%;"></div>
+                <div class="locus-box locus-rnap" style="left: 35%;">
+                    RNAP {% if sigma_factor %}({{ sigma_factor }}){% endif %}
+                </div>
+                <div class="locus-box locus-tf" style="left: 62%;">
+                    {{ tf_name }}
+                </div>
+            </div>
+            <div class="locus-legend">
+                <span><span class="legend-dot" style="background:var(--navy);"></span> RNAP binding site</span>
+                <span><span class="legend-dot" style="background:var(--green);"></span> TF binding site</span>
+                <span><span class="legend-dot" style="background:var(--amber);"></span> TSS</span>
+            </div>
+        </div>
+
+        <!-- ── Results Table ── -->
+        <div class="section-title">Raw Results</div>
+        {% if table_rows %}
+        <div class="table-section">
+        <table>
+            <thead>
+                <tr>
+                    <th>sID</th>
+                    <th>Sequence</th>
+                    <th>num_DNA</th>
+                    <th>num_RNA</th>
+                    <th>Expression (RNA/DNA)</th>
+                    <th>TF Affinity</th>
+                    <th>RNAP Energy</th>
+                </tr>
+            </thead>
+            <tbody id="results-tbody">
+                {% for row in table_rows %}
+                <tr class="result-row" {% if loop.index > 20 %}style="display:none"{% endif %}>
+                    <td>{{ row.sID }}</td>
+                    <td class="seq-cell" title="{{ row.seq }}">{{ row.seq }}</td>
+                    <td>{{ row.num_DNA }}</td>
+                    <td>{{ row.num_RNA }}</td>
+                    <td>{{ "%.3f" | format(row.expression) }}</td>
+                    <td>{{ "%.4f" | format(row.affinity) }}</td>
+                    <td>{{ "%.4f" | format(row.energy) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+
+        {% if table_rows|length > 20 %}
+        <div class="show-more-wrap">
+            <button class="btn-show-more" id="show-more-btn" onclick="toggleRows()">
+                Show all {{ table_rows|length }} rows ↓
+            </button>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <p style="color:var(--text3); font-size:0.8rem; font-family:var(--mono);">No results to display.</p>
+        {% endif %}
+
+    </div>
+    {% endif %}
+
+    <!-- ── Plotly rendering ── -->
+    <script>
+        let showingAll = false;
+        function toggleRows() {
+            const rows = document.querySelectorAll('.result-row');
+            const btn  = document.getElementById('show-more-btn');
+            showingAll = !showingAll;
+            rows.forEach((row, i) => {
+                if (i >= 20) row.style.display = showingAll ? '' : 'none';
+            });
+            btn.textContent = showingAll
+                ? 'Show less ↑'
+                : 'Show all {{ table_rows|length if table_rows else 0 }} rows ↓';
+        }
+
+        function isDataTrace(t) {
+            return (t.type === 'scatter' || t.type === 'scattergl') && t.mode !== 'lines';
+        }
+
+        function decodeBase64Float64(bdata) {
+            const raw = atob(bdata);
+            const buf = new ArrayBuffer(raw.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < raw.length; i++) view[i] = raw.charCodeAt(i);
+            return Array.from(new Float64Array(buf));
+        }
+
+        function addLogRegressionLine(fig) {
+            const scatter = fig.data.find(t => isDataTrace(t));
+            if (!scatter || !scatter.x || !scatter.y) return;
+
+            const x    = scatter.x.bdata ? decodeBase64Float64(scatter.x.bdata) : Array.from(scatter.x);
+            const yRaw = scatter.y.bdata ? decodeBase64Float64(scatter.y.bdata) : Array.from(scatter.y);
+            const y    = yRaw.map(v => v > 0 ? Math.log10(v) : null).filter(v => v !== null);
+            const xFiltered = x.filter((_, i) => yRaw[i] > 0);
+
+            const n = xFiltered.length;
+            if (n < 2) return;
+
+            const sumX  = xFiltered.reduce((a, b) => a + b, 0);
+            const sumY  = y.reduce((a, b) => a + b, 0);
+            const sumXY = xFiltered.reduce((a, b, i) => a + b * y[i], 0);
+            const sumX2 = xFiltered.reduce((a, b) => a + b * b, 0);
+            const slope     = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            const xMin  = Math.min(...xFiltered);
+            const xMax  = Math.max(...xFiltered);
+            const yLine = [xMin, xMax].map(xi => Math.pow(10, slope * xi + intercept));
+
+            fig.data.push({
+                x: [xMin, xMax],
+                y: yLine,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#b45309', width: 2, dash: 'dash' },
+                name: 'OLS fit',
+                showlegend: true,
+            });
+        }
+
+        function applyColor(fig) {
+            fig.data.forEach(trace => {
+                if (isDataTrace(trace)) {
+                    trace.marker = trace.marker || {};
+                    trace.marker.color = "#1a6b50";
+                }
+            });
+        }
+
+        {% if graph_tf_expr %}
+        (function() {
+            const fig = {{ graph_tf_expr | safe }};
+            fig.layout.yaxis = fig.layout.yaxis || {};
+            fig.layout.yaxis.type = "log";
+            fig.layout.paper_bgcolor = "#ffffff";
+            fig.layout.plot_bgcolor  = "#f7f6f2";
+            fig.layout.font = { color: "#1c1a16", family: "JetBrains Mono, monospace", size: 12 };
+            applyColor(fig);
+            addLogRegressionLine(fig);
+            Plotly.react("plot-tf-expr", fig.data, fig.layout, {responsive: true});
+        })();
+        {% endif %}
+
+        {% if graph_rnap_expr %}
+        (function() {
+            const fig = {{ graph_rnap_expr | safe }};
+            fig.layout.yaxis = fig.layout.yaxis || {};
+            fig.layout.yaxis.type = "log";
+            fig.layout.paper_bgcolor = "#ffffff";
+            fig.layout.plot_bgcolor  = "#f7f6f2";
+            fig.layout.font = { color: "#1c1a16", family: "JetBrains Mono, monospace", size: 12 };
+            applyColor(fig);
+            addLogRegressionLine(fig);
+            Plotly.react("plot-rnap-expr", fig.data, fig.layout, {responsive: true});
+        })();
+        {% endif %}
+
+        {% if graph_tf_rnap %}
+        (function() {
+            const fig = {{ graph_tf_rnap | safe }};
+            fig.layout.paper_bgcolor = "#ffffff";
+            fig.layout.plot_bgcolor  = "#f7f6f2";
+            fig.layout.font = { color: "#1c1a16", family: "JetBrains Mono, monospace", size: 12 };
+            applyColor(fig);
+            Plotly.react("plot-tf-rnap", fig.data, fig.layout, {responsive: true});
+        })();
+        {% endif %}
+    </script>
+
+</body>
+</html>
