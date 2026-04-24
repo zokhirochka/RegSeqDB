@@ -464,6 +464,7 @@ option {
   position: relative;
   height: 80px;
   margin: 2rem 0 0.8rem;   /* extra top margin so TSS label has room */
+  overflow: visible;
 }
 
 .locus-track::after {

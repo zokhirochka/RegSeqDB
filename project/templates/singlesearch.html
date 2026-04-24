@@ -178,17 +178,14 @@
         <!-- ── Genomic Locus ── -->
         <div class="section-title">Genomic Locus</div>
         <div class="locus-card">
-            <p style="font-size:0.75rem; color:var(--text2); margin-bottom:0.3rem;">
-                Approximate positions of binding sites relative to the transcription start site (TSS).
-            </p>
             <div class="locus-track">
-                <div class="locus-tss" style="left: 20%;"></div>
-                <div class="locus-box locus-rnap" style="left: 35%;">
-                    RNAP {% if sigma_factor %}({{ sigma_factor }}){% endif %}
-                </div>
-                <div class="locus-box locus-tf" style="left: 62%;">
-                    {{ tf_name }}
-                </div>
+            <div class="locus-tss" style="left: {{ locus.tss if locus else 20 }}%;"></div>
+            <div class="locus-box locus-rnap" style="left: {{ locus.rnap_start if locus else 35 }}%;">
+                RNAP
+            </div>
+            <div class="locus-box locus-tf" style="left: {{ locus.tf_start if locus else 62 }}%;">
+                {{ tf_name }}
+            </div>
             </div>
             <div class="locus-legend">
                 <span><span class="legend-dot" style="background:var(--navy);"></span> RNAP binding site</span>

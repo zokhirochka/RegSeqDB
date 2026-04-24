@@ -120,6 +120,62 @@ def search():
     has_data   = len(plot_data) > 0
     graph_json = json.dumps(plot_data, cls=DecimalEncoder) if has_data else None
 
+# ── Binding coords for genomic locus ─────────────────────────
+    locus = None
+    try:
+        import utils
+        locus_query = """
+            SELECT pID, pro_name, tss, seq,
+                    rnap.site_start as RNAP_start,
+                    rnap.site_stop  as RNAP_stop,
+                    tf.site_start   as TF_start,
+                    tf.site_stop    as TF_stop
+            FROM Promoters
+            JOIN (SELECT pID, site_start, site_stop FROM Promoters
+                            JOIN PromoterSequences AS ps USING(pID)
+                            JOIN BarcodeCounts USING(sID)
+                            JOIN Experiments USING (eID)
+                            JOIN BindingSitesTF USING(sID)
+                            JOIN TranscriptionFactors USING(tID)
+                    WHERE pID = (SELECT pID FROM Promoters WHERE pro_name = %s)
+                          AND eID = (SELECT eID FROM Experiments WHERE cond = %s LIMIT 1)
+                          AND tID = (SELECT tID FROM TranscriptionFactors WHERE tf_name = %s)
+                    ORDER BY affinity DESC LIMIT 1) as tf
+            USING(pID)
+            JOIN (SELECT pID, site_start, site_stop FROM Promoters
+                            JOIN PromoterSequences AS ps USING(pID)
+                            JOIN BarcodeCounts USING(sID)
+                            JOIN Experiments USING (eID)
+                            JOIN BindingSitesRNAP USING(sID)
+                    WHERE pID = (SELECT pID FROM Promoters WHERE pro_name = %s)
+                          AND eID = (SELECT eID FROM Experiments WHERE cond = %s LIMIT 1)
+                    ORDER BY energy DESC LIMIT 1) as rnap
+            USING (pID) LIMIT 1;
+        """
+        locus_inputs = [promoter, condition, tf, promoter, condition]
+        coords = utils.exec_query(cursor=db.cursor, query=locus_query, inputs=locus_inputs)
+        if coords['rowcount'] > 0:
+            _, _, tss, seq, rnap_start, rnap_stop, tf_start, tf_stop = coords['results'][0]
+            # normalize using the range of all coordinates
+            all_pos = [int(tss), int(rnap_start), int(rnap_stop), int(tf_start), int(tf_stop)]
+            pos_min = min(all_pos) - 20   # small padding
+            pos_max = max(all_pos) + 20
+            pos_range = pos_max - pos_min
+
+            def to_pct(val):
+                return round(((int(val) - pos_min) / pos_range) * 80 + 10, 1)
+                # maps to 10%-90% so boxes don't touch the edges
+
+            locus = {
+                "tss":        to_pct(tss),
+                "rnap_start": to_pct(rnap_start),
+                "rnap_stop":  to_pct(rnap_stop),
+                "tf_start":   to_pct(tf_start),
+                "tf_stop":    to_pct(tf_stop),
+            }
+    except Exception:
+        pass
+
     return render_template('singlesearch.html',
         promoter_name  = promoter,
         tf_name        = tf,
@@ -130,6 +186,7 @@ def search():
         graph_rnap_expr= has_data,
         graph_tf_rnap  = has_data,
         table_rows     = table_rows,
+        locus          = locus,
     )
 
 
