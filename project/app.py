@@ -1,8 +1,14 @@
+import sys
+import os
+
+# Add the project directory to the path
+sys.path.insert(0, '/var/www/html/students_26/Team12/project')
+
 import json
 import math
 import decimal
 from flask import Flask, render_template, request
-from regseq import RegSeq
+from regseqDB import RegSeqDB
 
 app = Flask(__name__)
 
@@ -23,7 +29,7 @@ DB_CREDENTIALS = dict(
 )
 
 # ── Connect once at startup ───────────────────────────────────────
-db = RegSeq()
+db = RegSeqDB()
 try:
     db.connect(**DB_CREDENTIALS)
     print("✓ Connected to database.")
@@ -61,9 +67,9 @@ def comparison():
 # ── Debug ─────────────────────────────────────────────────────────
 @app.route('/debug-methods')
 def debug_methods():
-    import regseq, inspect
-    methods = [m for m in dir(RegSeq()) if not m.startswith('_')]
-    return f"<pre>File: {inspect.getfile(regseq)}\nMethods: {methods}</pre>"
+    import regseqDB, inspect
+    methods = [m for m in dir(RegSeqDB()) if not m.startswith('_')]
+    return f"<pre>File: {inspect.getfile(regseqDB)}\nMethods: {methods}</pre>"
 
 
 # ── Single Search ─────────────────────────────────────────────────
@@ -120,9 +126,6 @@ def search():
     graph_json = json.dumps(plot_data, cls=DecimalEncoder) if has_data else None
 
     # ── Binding coords for genomic locus ─────────────────────────
-    # FIX: use db.get_promoter_binding_coords() instead of a hardcoded
-    # duplicate query. This ensures consistency with regseq.py and
-    # benefits from its input validation.
     locus = None
     try:
         coords = db.get_promoter_binding_coords(promoter, condition, tf)

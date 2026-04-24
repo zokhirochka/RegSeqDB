@@ -3,11 +3,11 @@ import utils
 
 ############################################################################
 # RegseqDB Class
-class RegSeq:
+class RegSeqDB:
 
 	def __init__(self):
 		'''
-		Regseq Class Initializations
+		RegseqDB Class Initializations
 		'''
 
 		# MariaDB Objects
