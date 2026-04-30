@@ -1,0 +1,86 @@
+<html>
+    <head>
+        <title>RegSeqDB — Login</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <style>
+            .login-wrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+            }
+            .login-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                box-shadow: var(--shadow-lg);
+                padding: 48px 40px;
+                width: 100%;
+                max-width: 380px;
+                text-align: center;
+            }
+            .login-card .logo {
+                font-family: var(--serif);
+                font-size: 32px;
+                color: var(--text);
+                text-decoration: none;
+                display: block;
+                margin-bottom: 8px;
+            }
+            .login-card .logo span { color: var(--amber); }
+            .login-card p {
+                color: var(--text3);
+                font-size: 14px;
+                margin-bottom: 32px;
+            }
+            .login-card input[type="password"] {
+                width: 100%;
+                padding: 10px 14px;
+                border: 1px solid var(--border-strong);
+                border-radius: var(--radius-sm);
+                font-family: var(--mono);
+                font-size: 14px;
+                background: var(--bg);
+                color: var(--text);
+                outline: none;
+                margin-bottom: 16px;
+                transition: border-color 0.15s;
+            }
+            .login-card input[type="password"]:focus {
+                border-color: var(--amber);
+            }
+            .login-card .btn {
+                width: 100%;
+                display: block;
+                text-align: center;
+            }
+            .login-error {
+                background: #fef2f2;
+                border: 1px solid #fca5a5;
+                color: #b91c1c;
+                border-radius: var(--radius-sm);
+                padding: 8px 12px;
+                font-size: 13px;
+                margin-bottom: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-wrapper">
+            <div class="login-card">
+                <a class="logo" href="#">Reg<span>Seq</span>DB</a>
+                <p>Enter the admin password to continue.</p>
+                {% if error %}
+                <div class="login-error">{{ error }}</div>
+                {% endif %}
+                <form method="POST" action="{{ url_for('login') }}">
+                    <input type="password" name="password" placeholder="Password" autofocus required>
+                    <button type="submit" class="btn">Sign in</button>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

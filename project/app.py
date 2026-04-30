@@ -1,5 +1,6 @@
 import sys
 import os
+import hmac
 
 # Add the project directory to the path
 sys.path.insert(0, '/var/www/html/students_26/Team12/project')
@@ -7,10 +8,41 @@ sys.path.insert(0, '/var/www/html/students_26/Team12/project')
 import json
 import math
 import decimal
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, redirect, url_for
 from regseqDB import RegSeqDB
 
 app = Flask(__name__)
+
+_auth_path = os.path.join(os.path.dirname(__file__), 'auth.json')
+with open(_auth_path) as _f:
+    _auth = json.load(_f)
+
+app.secret_key = _auth['secret_key']
+ADMIN_PASSWORD = _auth['admin_password']
+
+
+@app.before_request
+def require_login():
+    if request.endpoint not in ('login', 'logout', 'static') and not session.get('authenticated'):
+        return redirect(url_for('login'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if ADMIN_PASSWORD and hmac.compare_digest(password, ADMIN_PASSWORD):
+            session['authenticated'] = True
+            return redirect(url_for('home'))
+        error = 'Incorrect password.'
+    return render_template('login.html', error=error)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('authenticated', None)
+    return redirect(url_for('login'))
 
 # ── Decimal JSON Encoder ──────────────────────────────────────────
 class DecimalEncoder(json.JSONEncoder):
