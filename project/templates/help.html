@@ -7,24 +7,139 @@
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
-    
+
     <body>
+    <div class="page-content">
+
         <nav class="navbar">
             <div class="navbar-inner">
-                <a class="logo" href="{{ url_for('home') }}">
-                    Reg<span>Seq</span>DB
-                </a>
-            <ul class="nav-links">
-                <!--these let you click on other pages--> 
-                <li><a href="{{ url_for('about') }}">Information</a></li>
-                <li><a href="{{ url_for('help_page') }}">Help</a></li> 
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('singlesearch') }}">Single search</a></li>
-                <li><a href="{{ url_for('comparison') }}">Compare Between Conditions</a></li>
-            </ul>
+                <a class="logo" href="{{ url_for('home') }}">Reg<span>Seq</span>DB</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('about') }}">Information</a></li>
+                    <li><a href="{{ url_for('help_page') }}">Help</a></li>
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('singlesearch') }}">Single Search</a></li>
+                    <li><a href="{{ url_for('comparison') }}">Compare Between Conditions</a></li>
+                    <li><a href="{{ url_for('logout') }}">Log out</a></li>
+                </ul>
+            </div>
         </nav>
 
-        <h3>How to get the most out of this database.</h3>
+        <h1 id="defaultpageh1">Help</h1>
+        <p id="underTitle">How to get the most out of RegSeqDB.</p>
+
+        <div class="help-content">
+
+            <!-- Overview -->
+            <div class="help-card">
+                <h2>Overview</h2>
+                <p>
+                    RegSeqDB provides two search interfaces for exploring promoter sequence variation,
+                    gene expression, and transcription factor binding data in <em>E. coli</em>.
+                    Both pages — <strong>Single Search</strong> and <strong>Compare Between Conditions</strong> —
+                    are accessible from the navigation bar at the top of every page.
+                    Results load dynamically below the form without refreshing the page.
+                </p>
+                <img src="{{ url_for('static', filename='help_navbar.png') }}"
+                     alt="RegSeqDB navigation bar">
+            </div>
+
+            <!-- Single Search - Form -->
+            <div class="help-card" id="single-search">
+                <h2>Single Promoter Search — Inputs</h2>
+                <p>
+                    The <a href="{{ url_for('singlesearch') }}">Single Promoter Search</a> page allows
+                    you to retrieve expression and binding data for a specific promoter under a single
+                    experimental condition. You will need to provide three inputs: a <strong>Promoter Name</strong>,
+                    a <strong>Transcription Factor</strong>, and a <strong>Condition</strong> selected
+                    from the dropdown menu.
+                </p>
+                <img src="{{ url_for('static', filename='help_single_form.png') }}"
+                     alt="Single Promoter Search empty form">
+                <p style="margin-top: 20px;">
+                    <strong>Promoter Name</strong> and <strong>Transcription Factor</strong> are case-sensitive
+                    and must match the database exactly — for example, <code>tisBp</code> or <code>recAp</code>
+                    for promoters, and <code>LexA</code> or <code>CRP</code> for transcription factors.
+                    The <strong>Condition</strong> dropdown contains all available experimental conditions,
+                    such as Glucose, Xylose, Heat Shock, and others.
+                </p>
+                <img src="{{ url_for('static', filename='help_single_dropdown.png') }}"
+                     alt="Condition dropdown open" style="margin-bottom: 8px;">
+                <img src="{{ url_for('static', filename='help_single_filled.png') }}"
+                     alt="Form filled with tisBp and LexA">
+            </div>
+
+            <!-- Single Search - Results -->
+            <div class="help-card">
+                <h2>Single Promoter Search — Results</h2>
+                <p>
+                    Once you click <strong>Search</strong>, results will load below the form.
+                    Under <strong>Visualizations</strong>, you will see two scatter plots —
+                    <strong>TF Affinity vs. Expression</strong> and <strong>RNAP Binding Energy vs. Expression</strong> —
+                    both with OLS regression lines. Each plot has <strong>Zoom In</strong>, <strong>Zoom Out</strong>,
+                    and <strong>Reset</strong> controls.
+                </p>
+                <p>
+                    If binding coordinate data is available, a <strong>Genomic Locus</strong> diagram will
+                    display the positions of the <strong>TSS</strong>, <strong>RNAP</strong> binding site,
+                    and TF binding site. Under <strong>Raw Results</strong>, a table shows sequence IDs,
+                    DNA and RNA barcode counts, expression ratios, TF affinity scores, and RNAP binding energies.
+                    If the table exceeds 50 rows, use <strong>Download CSV</strong> to export the full dataset.
+                </p>
+                <img src="{{ url_for('static', filename='help_single_results.png') }}"
+                     alt="Single search results with plots, locus, and table">
+            </div>
+
+            <!-- Compare - Form -->
+            <div class="help-card" id="compare">
+                <h2>Compare Between Conditions — Inputs</h2>
+                <p>
+                    The <a href="{{ url_for('comparison') }}">Comparison</a> page allows you to compare
+                    expression and binding data for the same promoter and transcription factor across two
+                    different experimental conditions. You will need to provide a <strong>Promoter Name</strong>,
+                    a <strong>Transcription Factor</strong>, a <strong>First Condition</strong>, and a
+                    <strong>Second Condition</strong> from the dropdown menus.
+                </p>
+                <img src="{{ url_for('static', filename='help_compare_form.png') }}"
+                     alt="Comparison form with two condition dropdowns">
+            </div>
+
+            <!-- Compare - Results -->
+            <div class="help-card">
+                <h2>Compare Between Conditions — Results</h2>
+                <p>
+                    Once you click <strong>Compare</strong>, results will load below the form.
+                    You will see two scatter plots — <strong>TF Affinity vs. Log Fold Change</strong> and
+                    <strong>RNAP Binding Energy vs. Log Fold Change</strong> — where Log Fold Change is
+                    computed as Log₂(Expression₁ / Expression₂). Both plots include OLS regression lines.
+                </p>
+                <img src="{{ url_for('static', filename='help_compare_results.png') }}"
+                     alt="Comparison results with log fold change plots">
+            </div>
+
+            <!-- Input Notes -->
+            <div class="help-card">
+                <h2>Input Format Notes</h2>
+                <p>
+                    <strong>Promoter Name</strong> and <strong>Transcription Factor</strong> must match
+                    the database exactly, including capitalization. If your search returns no results,
+                    check for typos or try a different condition. Not all promoter and TF combinations
+                    have data under every experimental condition. For a quick test, try promoter
+                    <code>tisBp</code> with transcription factor <code>LexA</code> under Glucose.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <span class="site-footer-copy">© 2026 Galagan Lab · Boston University · BF768 Spring 2026</span>
+            <a href="https://github.com/zokhirochka/RegSeqDB" target="_blank" class="site-footer-link">
+                GitHub →
+            </a>
+        </div>
+    </footer>
 
     </body>
 </html>

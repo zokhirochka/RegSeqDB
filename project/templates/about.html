@@ -8,50 +8,74 @@
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
-    
     <body>
         <nav class="navbar">
             <div class="navbar-inner">
-                <a class="logo" href="{{ url_for('home') }}">
-                    Reg<span>Seq</span>DB
-                </a>
-            <ul class="nav-links">
-                <!--these let you click on other pages--> 
-                <li><a href="{{ url_for('about') }}">Information</a></li>
-                <li><a href="{{ url_for('help_page') }}">Help</a></li> 
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('singlesearch') }}">Single search</a></li>
-                <li><a href="{{ url_for('comparison') }}">Compare Between Conditions</a></li>
-            </ul>
+                <a class="logo" href="{{ url_for('home') }}">Reg<span>Seq</span>DB</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('about') }}">Information</a></li>
+                    <li><a href="{{ url_for('help_page') }}">Help</a></li>
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('singlesearch') }}">Single Search</a></li>
+                    <li><a href="{{ url_for('comparison') }}">Compare Between Conditions</a></li>
+                    <li><a href="{{ url_for('logout') }}">Log out</a></li>
+                </ul>
+            </div>
         </nav>
 
+        <h1 id="defaultpageh1">RegSeqDB</h1>
 
-        <h2>
-            About RegseqDB. Also change this to introduction? 
-        </h2>
-
-        <h4>
-            This project was developed by Bradley Jenner, Zokhira Mukhammadyunusova, 
-            Mohammad Gharandouq, and Leah Morzenti under the advisement of Dr. James Galagan. It 
-            was first worked on at Boston University for BF768, Spring 2026 for Dr. Gary Benson.
-        </h4>
-        <p>
-            I am just going to copy and paste the information that is in the description portion
-            of the proposal draft and we can edit it later.
-            This page should also include abstract of the purpose of the database.
-
-            RegSeqDB will serve as the primary database for all data related to a preprint by Röschinger, et al. and the subsequent analysis 
-            performed by the Galagan lab. Researchers in the Phillips Lab sought to identify condition dependent regulatory elements within E. coli by 
-            performing Reg-Seq, which consisted of introducing random mutations into promoter sequences and measuring the effects on downstream 
-            gene expression under various experimental conditions [1]. The Galagan lab then utilized biophysical models of transcription factor (TF) and
-            RNA polymerase (RNAP) binding (BoltzNet and Promoter Calculator, respectively) to predict TF/RNAP binding sites and their corresponding binding 
-            energies [2,3]. Current analyses are exploring the use of these biophysical quantities to predict gene expression. 
-
-            The data contained in this database will provide easy access to the promoter sequences, their corresponding RNA and DNA barcode counts under different
-            experimental conditions, and all TF and RNAP binding sites/energies. The ultimate goal of this database is to facilitate easy and reliable access to the 
-            data so that downstream analyses are repeatable. Future analyses are also likely to grow in complexity and scale as additional models for transcription 
-            factor binding are integrated into BoltzNet, highlighting the project’s need for structured and easily expandable databases.
+        <p id="underTitle">
+            A structured, queryable database linking promoter sequence variation
+            to gene expression and TF and RNAP binding in <em>E. coli</em>.
         </p>
+
+        <div class="about-article">
+
+            <h2 class="about-article-heading">Attributions</h2>
+            <p class="about-article-text">
+                Developed by Bradley Jenner, Zokhira Mukhammadyunusova, Mohammad Gharandouq, and Leah Morzenti
+                under the supervision of Dr. James Galagan at Boston University, as part of BF768, Spring 2026,
+                instructed by Dr. Gary Benson.
+            </p>
+
+            <h2 class="about-article-heading">Purpose</h2>
+            <p class="about-article-text">
+                RegSeqDB serves as the primary database for data related to a
+                <a href="https://arxiv.org/abs/2505.08764" target="_blank">preprint by Röschinger et al.</a>
+                and the subsequent analysis performed by the Galagan Lab. It provides easy access to promoter
+                sequences, RNA/DNA barcode counts across experimental conditions, and TF and RNAP binding sites
+                and energies — to support reliable and repeatable downstream analyses of gene regulation in
+                <em>E. coli</em>.
+            </p>
+
+            <h2 class="about-article-heading">Experimental Background</h2>
+            <p class="about-article-text">
+                Researchers in the Phillips Lab sought to identify condition-dependent regulatory
+                elements within <em>E. coli</em> promoter sequences by performing Reg-Seq — a method
+                that introduces random mutations into promoters and measures the effects on downstream
+                gene expression under varying experimental conditions. The Galagan Lab then applied
+                <a href="https://www.nature.com/articles/s41467-025-58862-8" target="_blank">BoltzNet</a> and
+                <a href="https://www.nature.com/articles/s41467-022-32829-5" target="_blank">Promoter Calculator</a>
+                to predict TF and RNAP binding sites and their corresponding binding energies across all
+                sequence variants, with the goal of investigating their value in predicting gene expression.
+                Current analyses are exploring the use of these biophysical quantities to build predictive
+                models of transcription. Considering that future analyses are likely to grow in complexity
+                as additional models for transcription factor binding are integrated into BoltzNet, a
+                structured and easily expandable database is imperative in supporting these long-term
+                research objectives.
+            </p>
+
+        </div>
+
+        <footer class="site-footer">
+            <div class="site-footer-inner">
+                <span class="site-footer-copy">© 2026 Galagan Lab · Boston University · BF768 Spring 2026</span>
+                <a href="https://github.com/zokhirochka/RegSeqDB" target="_blank" class="site-footer-link">
+                    GitHub →
+                </a>
+            </div>
+        </footer>
 
     </body>
 </html>

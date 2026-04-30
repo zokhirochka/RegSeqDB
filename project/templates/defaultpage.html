@@ -14,16 +14,15 @@
                 <a class="logo" href="{{ url_for('home') }}">
                     Reg<span>Seq</span>DB
                 </a>
-            </div>    
-            <ul class="nav-links">
-                <!--these let you click on other pages--> 
-                <li><a href="{{ url_for('about') }}">Information</a></li>
-                <li><a href="{{ url_for('help_page') }}">Help</a></li> 
-                <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('singlesearch') }}">Single search</a></li>
-                <li><a href="{{ url_for('comparison') }}">Compare Between Conditions</a></li>
-                <li><a href="{{ url_for('logout') }}">Log out</a></li>
-            </ul>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('about') }}">Information</a></li>
+                    <li><a href="{{ url_for('help_page') }}">Help</a></li>
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('singlesearch') }}">Single Search</a></li>
+                    <li><a href="{{ url_for('comparison') }}">Compare Between Conditions</a></li>
+                    <li><a href="{{ url_for('logout') }}">Log out</a></li>
+                </ul>
+            </div>
         </nav>
 
         <h1 id="defaultpageh1" class="h1">RegseqDB</h1>
