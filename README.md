@@ -33,7 +33,7 @@ Researchers in the Phillips Lab sought to identify condition-dependent regulator
 
 ## Team
 
-Developed under the supervision of Dr. James Galagan at Boston University, as part of BF768, Spring 2026, instructed by Dr. Gary Benson by Bradley Jenner, Mohammad Gharandouq, Zokhira Mukhammadyunusova and Leah Morzenti.
+Developed under the supervision of Dr. James Galagan at Boston University, as part of BF768, Spring 2026, instructed by Dr. Gary Benson by Bradley Jenner, Leah Morzenti, Mohammad Gharandouq, Zokhira Mukhammadyunusova.
 
 ## Tech Stack
 
