@@ -46,24 +46,39 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="promoter_name">Promoter Name:</label>
+                     <label for="promoter_name">
+                         Promoter Name:
+                         <a class="help-btn"
+                            href="#"
+                            onclick="window.open('/help#promoter-name', 'Help', 'width=600,height=500,scrollbars=yes'); return false;"
+                            title="Help with Promoter Name">?</a>
+                        <span class="required">*</span>
+                     </label>
                     <div class="autocomplete-wrap">
                         <input type="text" name="promoter_name" id="promoter_name"
-                            placeholder="ex: tisBp" autocomplete="off"
-                            value="{{ promoter_name or '' }}">
-                        <div class="autocomplete-dropdown" id="promoter_name-dropdown" style="display:none;"></div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="TF_name">Transcription Factor:</label>
-                    <div class="autocomplete-wrap">
-                        <input type="text" name="TF_name" id="TF_name"
-                            placeholder="ex: LexA" autocomplete="off"
-                            value="{{ tf_name or '' }}">
-                        <div class="autocomplete-dropdown" id="TF_name-dropdown" style="display:none;"></div>
-                    </div>
+                                placeholder="ex: tisBp" autocomplete="off"
+                                value="{{ promoter_name or '' }}">
+                    <div class="autocomplete-dropdown" id="promoter_name-dropdown" style="display:none;"></div>
                 </div>
             </div>
+            
+    <div class="form-group">
+        <label for="TF_name">
+            Transcription Factor:
+            <a class="help-btn"
+               href="#"
+               onclick="window.open('/help#transcription-factor', 'Help', 'width=600,height=500,scrollbars=yes'); return false;"
+               title="Help with Transcription Factor">?</a>
+            <span class="required">*</span>
+        </label>
+        <div class="autocomplete-wrap">
+            <input type="text" name="TF_name" id="TF_name"
+                placeholder="ex: LexA" autocomplete="off"
+                value="{{ tf_name or '' }}">
+            <div class="autocomplete-dropdown" id="TF_name-dropdown" style="display:none;"></div>
+        </div>
+    </div>
+</div>
 
             <div class="form-group full-width">
                 <label for="Condition">Condition:</label>
