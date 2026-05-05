@@ -3,6 +3,7 @@
         <title>RegSeqDB — Comparison Search</title>
         <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
         <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
@@ -189,6 +190,7 @@
                     <button class="plot-btn" onclick="zoomIn('plot-tf-expr')">+ Zoom In</button>
                     <button class="plot-btn" onclick="zoomOut('plot-tf-expr')">− Zoom Out</button>
                     <button class="plot-btn" onclick="resetPlot('plot-tf-expr')">↺ Reset</button>
+                    <button class="btn-download" onclick="Plotly.downloadImage('plot-tf-expr', {format:'png', filename:'tf_affinity_{{ promoter_name }}_{{ condition1 }}_vs_{{ condition2 }}', scale:2})">⬇ PNG</button>
                 </div>
                 <div id="plot-tf-expr" class="plot-container"></div>
             </div>
@@ -202,6 +204,7 @@
                     <button class="plot-btn" onclick="zoomIn('plot-rnap-expr')">+ Zoom In</button>
                     <button class="plot-btn" onclick="zoomOut('plot-rnap-expr')">− Zoom Out</button>
                     <button class="plot-btn" onclick="resetPlot('plot-rnap-expr')">↺ Reset</button>
+                    <button class="btn-download" onclick="Plotly.downloadImage('plot-rnap-expr', {format:'png', filename:'rnap_energy_{{ promoter_name }}_{{ condition1 }}_vs_{{ condition2 }}', scale:2})">⬇ PNG</button>
                 </div>
                 <div id="plot-rnap-expr" class="plot-container"></div>
             </div>
@@ -211,6 +214,122 @@
         <div class="no-results">
             No data found for <strong>{{ promoter_name }}</strong> with TF
             <strong>{{ tf_name }}</strong> in either condition.
+        </div>
+        {% endif %}
+
+        <!-- ── Genomic Locus ── -->
+        {% if locus %}
+        <div class="section-title">Genomic Locus</div>
+        <div class="download-wrap">
+            <button class="btn-download" onclick="downloadLocusPNG()">⬇ Download PNG</button>
+        </div>
+        <div class="locus-card" id="locus-card">
+            <div class="locus-track">
+            <div class="locus-tss" style="left: {{ locus.tss }}%;"></div>
+            <div class="locus-box locus-rnap" style="left: {{ locus.rnap_start }}%; width: {{ locus.rnap_stop - locus.rnap_start }}%;">
+                RNAP
+            </div>
+            <div class="locus-box locus-tf" style="left: {{ locus.tf_start }}%; width: {{ locus.tf_stop - locus.tf_start }}%;">
+                {{ tf_name }}
+            </div>
+            </div>
+            <div class="locus-legend">
+                <span><span class="legend-dot" style="background:var(--navy);"></span> RNAP binding site</span>
+                <span><span class="legend-dot" style="background:var(--green);"></span> TF binding site</span>
+                <span><span class="legend-dot" style="background:var(--amber);"></span> TSS</span>
+            </div>
+        </div>
+        <script>
+        function downloadLocusPNG() {
+            const card = document.getElementById('locus-card');
+            html2canvas(card, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = 'locus_{{ promoter_name }}_{{ condition1 }}_vs_{{ condition2 }}.png';
+                a.click();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const boxes = Array.from(document.querySelectorAll('.locus-box'));
+            const track = document.querySelector('.locus-track');
+            if (boxes.length < 2 || !track) return;
+
+            const rects = boxes.map(b => b.getBoundingClientRect());
+
+            function overlaps(a, b) {
+                return a.left < b.right && b.left < a.right;
+            }
+
+            const lanes = [];
+            const assignment = boxes.map((_, i) => {
+                for (let l = 0; l < lanes.length; l++) {
+                    if (lanes[l].every(j => !overlaps(rects[i], rects[j]))) {
+                        lanes[l].push(i);
+                        return l;
+                    }
+                }
+                lanes.push([i]);
+                return lanes.length - 1;
+            });
+
+            const laneCount = lanes.length;
+            if (laneCount < 2) return;
+
+            track.style.height = (laneCount * 70) + 'px';
+            const step = 100 / (laneCount + 1);
+            boxes.forEach((box, i) => {
+                box.style.top = (step * (assignment[i] + 1)) + '%';
+                box.style.transform = 'translateY(-50%)';
+            });
+        });
+        </script>
+        {% endif %}
+
+        <!-- ── Results Table ── -->
+        {% if table_rows %}
+        <div class="section-title">Raw Results</div>
+        <div class="download-wrap">
+            <button class="btn-download" onclick="downloadCSV()">⬇ Download CSV</button>
+        </div>
+        <div class="table-section">
+        <table id="results-table">
+            <thead>
+                <tr>
+                    <th>sID</th>
+                    <th>num_DNA ({{ condition1 }})</th>
+                    <th>num_RNA ({{ condition1 }})</th>
+                    <th>num_DNA ({{ condition2 }})</th>
+                    <th>num_RNA ({{ condition2 }})</th>
+                    <th>Expression 1</th>
+                    <th>Expression 2</th>
+                    <th>Log Fold Change</th>
+                    <th>TF Affinity</th>
+                    <th>RNAP Energy</th>
+                </tr>
+            </thead>
+            <tbody id="results-tbody">
+                {% for row in table_rows %}
+                <tr class="result-row" {% if loop.index > 50 %}style="display:none"{% endif %}>
+                    <td>{{ row.sID }}</td>
+                    <td>{{ row.dna1 | int }}</td>
+                    <td>{{ row.rna1 | int }}</td>
+                    <td>{{ row.dna2 | int }}</td>
+                    <td>{{ row.rna2 | int }}</td>
+                    <td>{{ "%.3f" | format(row.expr1) if row.expr1 is not none else "—" }}</td>
+                    <td>{{ "%.3f" | format(row.expr2) if row.expr2 is not none else "—" }}</td>
+                    <td>{{ "%.3f" | format(row.logfc) if row.logfc is not none else "—" }}</td>
+                    <td>{{ "%.4f" | format(row.affinity) if row.affinity is not none else "—" }}</td>
+                    <td>{{ "%.4f" | format(row.energy) if row.energy is not none else "—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if table_rows|length > 50 %}
+        <div class="rows-hidden-note">
+            {{ table_rows|length - 50 }} rows hidden — download CSV to view all.
+        </div>
+        {% endif %}
         </div>
         {% endif %}
 
@@ -285,7 +404,7 @@
 
     // ── Shared config ──────────────────────────────────────────────
     const layoutBase = {
-        paper_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: '#ffffff',
         plot_bgcolor:  '#fafaf8',
         font: { family: 'Outfit, sans-serif', size: 12, color: '#4a4640' },
         margin: { t: 20, b: 55, l: 65, r: 20 },
@@ -351,6 +470,26 @@
         },
         config
     );
+    </script>
+    {% endif %}
+
+    {% if table_rows %}
+    <script>
+    function downloadCSV() {
+        const headers = ['sID', 'num_DNA_cond1', 'num_RNA_cond1', 'num_DNA_cond2', 'num_RNA_cond2',
+                         'Expression1', 'Expression2', 'LogFoldChange', 'TF_Affinity', 'RNAP_Energy'];
+        const rows = Array.from(document.querySelectorAll('#results-tbody tr')).map(tr =>
+            Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())
+        );
+        const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = 'regseqdb_{{ promoter_name }}_{{ condition1 }}_vs_{{ condition2 }}.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
     </script>
     {% endif %}
 

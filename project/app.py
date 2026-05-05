@@ -248,11 +248,54 @@ def compare():
     except Exception as e:
         return f"<pre>DATA PROCESSING ERROR:\n{e}</pre>", 500
 
+    table_rows = []
+    for row in results:
+        sID, dna1, rna1, dna2, rna2, energy, affinity = row
+        d1 = float(dna1) if dna1 is not None else 0
+        r1 = float(rna1) if rna1 is not None else 0
+        d2 = float(dna2) if dna2 is not None else 0
+        r2 = float(rna2) if rna2 is not None else 0
+        expr1 = r1 / d1 if d1 > 0 else None
+        expr2 = r2 / d2 if d2 > 0 else None
+        logfc = math.log2(expr1 / expr2) if expr1 and expr2 else None
+        table_rows.append({
+            'sID':      sID,
+            'dna1':     d1, 'rna1': r1,
+            'dna2':     d2, 'rna2': r2,
+            'expr1':    expr1,
+            'expr2':    expr2,
+            'logfc':    logfc,
+            'affinity': float(affinity) if affinity is not None else None,
+            'energy':   float(energy)   if energy   is not None else None,
+        })
+
+    locus = None
+    try:
+        coords = db.get_promoter_binding_coords(promoter, condition1, tf)
+        if coords['rowcount'] > 0:
+            _, _, tss, seq, rnap_start, rnap_stop, tf_start, tf_stop = coords['results'][0]
+            all_pos   = [int(tss), int(rnap_start), int(rnap_stop), int(tf_start), int(tf_stop)]
+            pos_min   = min(all_pos) - 20
+            pos_max   = max(all_pos) + 20
+            pos_range = pos_max - pos_min
+            def to_pct(val):
+                return round(((int(val) - pos_min) / pos_range) * 80 + 10, 1)
+            locus = {
+                'tss':        to_pct(tss),
+                'rnap_start': to_pct(rnap_start),
+                'rnap_stop':  to_pct(rnap_stop),
+                'tf_start':   to_pct(tf_start),
+                'tf_stop':    to_pct(tf_stop),
+            }
+    except Exception:
+        pass
+
     return render_template('comparison.html',
         promoter_name=promoter, tf_name=tf,
         condition1=condition1, condition2=condition2,
         rowcount1=rowcount, rowcount2=rowcount,
         graph_tf_expr=has_data, graph_json=graph_json,
+        table_rows=table_rows, locus=locus,
     )
 
 
