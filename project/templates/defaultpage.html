@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>RegSeqDB — Compare Search</title>
+        <title>RegSeqDB</title>
         <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,16 +25,52 @@
             </div>
         </nav>
 
-        <h1 id="defaultpageh1" class="h1">RegseqDB</h1>
-        <p id="underTitle" class="p1">
-            A database for exploring promoter mutations, gene expression, and 
-            transcription factor binding in E. coli across experimental conditions.
+        <h1 id="defaultpageh1">RegSeqDB</h1>
+        <p id="underTitle">
+            A database for exploring promoter mutations, gene expression, and
+            transcription factor binding in <em>E. coli</em> across experimental conditions.
         </p>
 
         <div class="buttons">
             <a href="{{ url_for('singlesearch') }}" class="btn">Single Promoter Search</a>
             <a href="{{ url_for('comparison') }}" class="btn">Compare Conditions</a>
         </div>
-        
+
+        <!-- ── Stats Row ── -->
+        <div class="home-stats">
+            <div class="stat-card">
+                <div class="stat-number">39</div>
+                <div class="stat-label">Experimental Conditions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">96K</div>
+                <div class="stat-label">Promoter Sequences</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6M</div>
+                <div class="stat-label">Binding Site Predictions</div>
+            </div>
+        </div>
+
+        <!-- ── Feature Cards ── -->
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>Single Promoter Search</h4>
+                <p>Query a promoter and transcription factor pair under any experimental condition to retrieve expression and binding energy data with interactive visualizations.</p>
+                <a href="{{ url_for('singlesearch') }}">Search →</a>
+            </div>
+            <div class="feature-card">
+                <h4>Compare Conditions</h4>
+                <p>Compare expression and TF binding across two experimental conditions using log fold change regression plots to identify condition-dependent regulatory elements.</p>
+                <a href="{{ url_for('comparison') }}">Compare →</a>
+            </div>
+            <div class="feature-card">
+                <h4>Download Data</h4>
+                <p>Export search results as CSV files for downstream analysis and reproducible computational workflows. Available on all search result pages.</p>
+                <a href="{{ url_for('singlesearch') }}">Export →</a>
+            </div>
+        </div>
+
+        {% include 'footer.html' %}
     </body>
 </html>

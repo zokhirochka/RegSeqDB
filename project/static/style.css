@@ -694,6 +694,82 @@ tbody td {
   transform: translateY(-1px);
 }
 
+/* ── Home Stats & Feature Cards ──────────────── */
+.home-stats {
+  max-width: 1100px;
+  margin: 48px auto 20px;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+}
+
+.stat-number {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--amber-mid);
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.feature-grid {
+  max-width: 1100px;
+  margin: 0 auto 64px;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.feature-card h4 {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  font-size: 13.5px;
+  color: var(--text2);
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+
+.feature-card a {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--amber);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.feature-card a:hover {
+  color: var(--amber-mid);
+}
+
 /* ── Empty Results Note ───────────────────────── */
 .empty-note {
   color: var(--text3);
