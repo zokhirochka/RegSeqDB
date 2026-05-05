@@ -1,4 +1,4 @@
-regseqdb/__pycache__/
+project/__pycache__/
 .DS_Store
 **/.DS_Store
 project/auth.json

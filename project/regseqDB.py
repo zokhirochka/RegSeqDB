@@ -198,6 +198,18 @@ class RegSeqDB:
 		return results
 
 
+	def search_promoter_names(self, prefix, limit=20):
+		"""Return promoter names starting with prefix."""
+		query  = f"SELECT DISTINCT pro_name FROM Promoters WHERE pro_name LIKE %s ORDER BY pro_name LIMIT {int(limit)}"
+		inputs = [prefix + '%']
+		return self.__query(query, inputs)
+
+	def search_tf_names(self, prefix, limit=20):
+		"""Return TF names starting with prefix."""
+		query  = f"SELECT DISTINCT tf_name FROM TranscriptionFactors WHERE tf_name LIKE %s ORDER BY tf_name LIMIT {int(limit)}"
+		inputs = [prefix + '%']
+		return self.__query(query, inputs)
+
 	def get_condition_comparison(self, promoter, tf, condition1, condition2):
 		"""Get Promoter LogFC and TF/RNAP Binding comparing across conditions
 

@@ -8,7 +8,7 @@ sys.path.insert(0, '/var/www/html/students_26/Team12/project')
 import json
 import math
 import decimal
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 from regseqDB import RegSeqDB
 
 app = Flask(__name__)
@@ -298,6 +298,29 @@ def compare():
         table_rows=table_rows, locus=locus,
     )
 
+
+# ── Autocomplete API ──────────────────────────────────────────────
+@app.route('/api/promoters')
+def api_promoters():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify([])
+    try:
+        res = db.search_promoter_names(q)
+        return jsonify([row[0] for row in res['results']])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tfs')
+def api_tfs():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify([])
+    try:
+        res = db.search_tf_names(q)
+        return jsonify([row[0] for row in res['results']])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ── Run ───────────────────────────────────────────────────────────
 if __name__ == '__main__':
