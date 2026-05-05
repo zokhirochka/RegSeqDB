@@ -513,13 +513,18 @@ option {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  padding: 5px 12px;
+  padding: 5px 4px;
   border-radius: 5px;
   font-size: 0.7rem;
   font-weight: 600;
   font-family: var(--mono);
   z-index: 2;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 1%;
 }
 
 .locus-rnap {

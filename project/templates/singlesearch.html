@@ -3,6 +3,7 @@
         <title>RegSeqDB — Single Promoter Search</title>
         <script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
         <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
@@ -151,6 +152,7 @@
                     <button class="plot-btn" onclick="zoomIn('plot-tf-expr')">+ Zoom In</button>
                     <button class="plot-btn" onclick="zoomOut('plot-tf-expr')">− Zoom Out</button>
                     <button class="plot-btn" onclick="resetPlot('plot-tf-expr')">↺ Reset</button>
+                    <button class="btn-download" onclick="Plotly.downloadImage('plot-tf-expr', {format:'png', filename:'tf_affinity_{{ promoter_name }}_{{ condition }}', scale:2})">⬇ PNG</button>
                 </div>
                 <div id="plot-tf-expr" class="plot-container"></div>
             </div>
@@ -164,6 +166,7 @@
                     <button class="plot-btn" onclick="zoomIn('plot-rnap-expr')">+ Zoom In</button>
                     <button class="plot-btn" onclick="zoomOut('plot-rnap-expr')">− Zoom Out</button>
                     <button class="plot-btn" onclick="resetPlot('plot-rnap-expr')">↺ Reset</button>
+                    <button class="btn-download" onclick="Plotly.downloadImage('plot-rnap-expr', {format:'png', filename:'rnap_energy_{{ promoter_name }}_{{ condition }}', scale:2})">⬇ PNG</button>
                 </div>
                 <div id="plot-rnap-expr" class="plot-container"></div>
             </div>
@@ -179,13 +182,16 @@
         <!-- ── Genomic Locus ── -->
         {% if locus %}
         <div class="section-title">Genomic Locus</div>
-        <div class="locus-card">
+        <div class="download-wrap">
+            <button class="btn-download" onclick="downloadLocusPNG()">⬇ Download PNG</button>
+        </div>
+        <div class="locus-card" id="locus-card">
             <div class="locus-track">
-            <div class="locus-tss" style="left: {{ locus.tss if locus else 20 }}%;"></div>
-            <div class="locus-box locus-rnap" style="left: {{ locus.rnap_start if locus else 35 }}%;">
+            <div class="locus-tss" style="left: {{ locus.tss }}%;"></div>
+            <div class="locus-box locus-rnap" style="left: {{ locus.rnap_start }}%; width: {{ locus.rnap_stop - locus.rnap_start }}%;">
                 RNAP
             </div>
-            <div class="locus-box locus-tf" style="left: {{ locus.tf_start if locus else 62 }}%;">
+            <div class="locus-box locus-tf" style="left: {{ locus.tf_start }}%; width: {{ locus.tf_stop - locus.tf_start }}%;">
                 {{ tf_name }}
             </div>
             </div>
@@ -195,6 +201,53 @@
                 <span><span class="legend-dot" style="background:var(--amber);"></span> TSS</span>
             </div>
         </div>
+        <script>
+        function downloadLocusPNG() {
+            const card = document.getElementById('locus-card');
+            html2canvas(card, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = 'locus_{{ promoter_name }}_{{ condition }}.png';
+                a.click();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const boxes  = Array.from(document.querySelectorAll('.locus-box'));
+            const track  = document.querySelector('.locus-track');
+            if (boxes.length < 2 || !track) return;
+
+            const rects = boxes.map(b => b.getBoundingClientRect());
+
+            function overlaps(a, b) {
+                return a.left < b.right && b.left < a.right;
+            }
+
+            // Greedy lane assignment
+            const lanes = [];
+            const assignment = boxes.map((_, i) => {
+                for (let l = 0; l < lanes.length; l++) {
+                    if (lanes[l].every(j => !overlaps(rects[i], rects[j]))) {
+                        lanes[l].push(i);
+                        return l;
+                    }
+                }
+                lanes.push([i]);
+                return lanes.length - 1;
+            });
+
+            const laneCount = lanes.length;
+            if (laneCount < 2) return;
+
+            track.style.height = (laneCount * 70) + 'px';
+
+            const step = 100 / (laneCount + 1);
+            boxes.forEach((box, i) => {
+                box.style.top    = (step * (assignment[i] + 1)) + '%';
+                box.style.transform = 'translateY(-50%)';
+            });
+        });
+        </script>
         {% endif %}
 
         <!-- ── Results Table ── -->
@@ -306,7 +359,7 @@
 
     // ── Shared config ──────────────────────────────────────────────
     const layoutBase = {
-        paper_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: '#ffffff',
         plot_bgcolor:  '#fafaf8',
         font: { family: 'Outfit, sans-serif', size: 12, color: '#4a4640' },
         margin: { t: 20, b: 55, l: 65, r: 20 },
@@ -390,6 +443,56 @@
         a.click();
         URL.revokeObjectURL(url);
     }
+
+
+    <!-- ── Autocomplete ───────────────────────────────────────────── -->
+
+    function setupAutocomplete(inputId, field) {
+        const input = document.getElementById(inputId);
+        const suggestions = document.createElement("div");
+        suggestions.classList.add("autocomplete-suggestions");
+        input.parentNode.insertBefore(suggestions, input.nextSibling);
+
+        
+        input.addEventListener("input", function () {
+            const query = this.value.trim();
+            suggestions.innerHTML = "";
+            if (!query) return;
+
+            console.log("Fetching autocomplete for:", query);
+
+            fetch(`/autocomplete?field=${field}&q=${encodeURIComponent(query)}`)
+                .then(res => {
+                    console.log("Response status:", res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    console.log("Data received:", data);
+                    if (data.length === 0) {
+                        console.log("No results returned");
+                        return;
+                    }
+                    data.forEach(item => {
+                        const div = document.createElement("div");
+                        div.textContent = item;
+                        div.addEventListener("click", () => {
+                            input.value = item;
+                            suggestions.innerHTML = "";
+                        });
+                        suggestions.appendChild(div);
+                    });
+                })
+                .catch(err => console.error("Fetch error:", err));
+        });
+
+        document.addEventListener("click", function (e) {
+            if (e.target !== input) suggestions.innerHTML = "";
+        });
+    }
+
+    setupAutocomplete('promoter_name', 'promoter');
+    setupAutocomplete('TF_name', 'tf');
+
     </script>
     {% endif %}
 
