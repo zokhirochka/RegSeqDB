@@ -568,7 +568,7 @@ option {
   border-radius: var(--radius);
   padding: 0;
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow-x: auto;
 }
  
 table {
