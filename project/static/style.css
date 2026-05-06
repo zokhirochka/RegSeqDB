@@ -983,3 +983,43 @@ label {
   font-weight: 700;
   line-height: 1;
 }
+
+/* ── External References Box ──────────────────────────────── */
+
+.external-links-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #f7f7f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 18px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.external-links-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.external-link-btn {
+  font-size: 13px;
+  color: #4a7abf;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.external-link-btn:hover {
+  color: #2a5a9f;
+  text-decoration: underline;
+}
+
+.external-links-row {
+    display: flex;
+    gap: 24px; 
+}

@@ -199,6 +199,29 @@
             <div class="pill">Sequences returned <strong>{{ rowcount1 }}</strong></div>
         </div>
 
+                <!-- -- External References -- -->
+         <div class="external-links-box">
+            <span class="external-links-title">External Resources</span>
+                 <div class="external-links-row">
+                    <a href="https://regulondb.ccg.unam.mx/search?term={{ promoter_name }}" 
+                        target="_blank" class="external-link-btn">
+                        View {{ promoter_name }} on RegulonDB ↗
+                    </a> 
+                    <a href="https://ecocyc.org/search?query={{ promoter_name }}" 
+                        target="_blank" class="external-link-btn">
+                        View {{ promoter_name }} on EcoCyc ↗
+                    </a>
+                    <a href="https://regulondb.ccg.unam.mx/search?term={{ tf_name }}" 
+                        target="_blank" class="external-link-btn">
+                        View {{ tf_name }} on RegulonDB ↗
+                    </a>
+                    <a href="https://ecocyc.org/search?query={{ tf_name }}" 
+                        target="_blank" class="external-link-btn">
+                        View {{ tf_name }} on EcoCyc ↗
+                    </a>
+            </div>
+        </div>
+
         {% if graph_tf_expr %}
         <div class="section-title">Visualizations</div>
         <div class="plot-grid">
