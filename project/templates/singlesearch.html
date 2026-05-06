@@ -163,19 +163,19 @@
          <div class="external-links-box">
             <span class="external-links-title">External Resources</span>
                  <div class="external-links-row">
-                    <a href="https://regulondb.ccg.unam.mx/search?term={{ promoter_name }}" 
+                    <a href="https://regulondb.ccg.unam.mx/search/{{ promoter_name[:-1] }}"
                         target="_blank" class="external-link-btn">
                         View {{ promoter_name }} on RegulonDB ↗
-                    </a> 
-                    <a href="https://ecocyc.org/search?query={{ promoter_name }}" 
+                    </a>
+                    <a href="https://biocyc.org/ECOLI/substring-search?type=GENE&object={{ promoter_name[:-1] }}"
                         target="_blank" class="external-link-btn">
                         View {{ promoter_name }} on EcoCyc ↗
                     </a>
-                    <a href="https://regulondb.ccg.unam.mx/search?term={{ tf_name }}" 
+                    <a href="https://regulondb.ccg.unam.mx/search/{{ tf_name }}"
                         target="_blank" class="external-link-btn">
                         View {{ tf_name }} on RegulonDB ↗
                     </a>
-                    <a href="https://ecocyc.org/search?query={{ tf_name }}" 
+                    <a href="https://biocyc.org/ECOLI/substring-search?type=GENE&object={{ tf_name }}"
                         target="_blank" class="external-link-btn">
                         View {{ tf_name }} on EcoCyc ↗
                     </a>
